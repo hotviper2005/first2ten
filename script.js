@@ -4,6 +4,7 @@ let countedRounds = 0;
 
 let gameStarted = false;
 let gameOver = false;
+let tieBreakerMode = false;
 
 function rollDie() {
     return Math.floor(Math.random() * 6) + 1;
@@ -30,6 +31,8 @@ function startGame() {
     p1Wins = 0;
     p2Wins = 0;
     countedRounds = 0;
+
+    tieBreakerMode = false;
 
     gameStarted = true;
     gameOver = false;
@@ -69,12 +72,11 @@ function animateRoll() {
     document.getElementById("status").textContent =
         "🎲 Rolling Dice...";
 
-    // 🔊 SOUND
     const rollSound = document.getElementById("rollSound");
+
     rollSound.currentTime = 0;
     rollSound.play();
 
-    // 🎲 Rapid casino tumble
     const animationInterval = setInterval(() => {
 
         dice.forEach(die => {
@@ -95,10 +97,11 @@ function animateRoll() {
 
         rollDice();
 
-        // 🔊 stop click
         document.getElementById("clickSound").play();
 
-        rollBtn.disabled = false;
+        if (!gameOver) {
+            rollBtn.disabled = false;
+        }
 
     }, 1200);
 }
@@ -154,8 +157,32 @@ function rollDice() {
     // 🤝 TIE
     if (total1 === total2) {
 
+        if (tieBreakerMode) {
+
+            document.getElementById("status").textContent =
+                "🔥 TIEBREAKER TIE - ROLL AGAIN";
+
+        } else {
+
+            document.getElementById("status").textContent =
+                "Tie - Roll Again";
+        }
+
+        return;
+    }
+
+    // 🔥 TIEBREAKER ROUND
+    if (tieBreakerMode) {
+
+        const winner =
+            total1 > total2 ? p1 : p2;
+
         document.getElementById("status").textContent =
-            "Tie - Roll Again";
+            `🏆 TIEBREAKER WINNER: ${winner}`;
+
+        gameOver = true;
+
+        document.getElementById("rollBtn").disabled = true;
 
         return;
     }
@@ -172,7 +199,18 @@ function rollDice() {
         `Round ${countedRounds}: ${p1} ${total1} - ${total2} ${p2}<br>` +
         document.getElementById("history").innerHTML;
 
-    // 🏆 WINNER
+    // 🔥 5-5 TIEBREAKER
+    if (p1Wins === 5 && p2Wins === 5) {
+
+        tieBreakerMode = true;
+
+        document.getElementById("status").textContent =
+            "🔥 5-5 TIEBREAKER ROUND";
+
+        return;
+    }
+
+    // 🏆 NORMAL WIN CONDITIONS
     if (
         countedRounds >= 10 ||
         p1Wins >= 6 ||
@@ -200,6 +238,7 @@ function resetGame() {
 
     gameStarted = false;
     gameOver = false;
+    tieBreakerMode = false;
 
     p1Wins = 0;
     p2Wins = 0;
