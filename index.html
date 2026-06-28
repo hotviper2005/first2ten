@@ -2,12 +2,14 @@
 <html lang="en">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Best of 10 Dice Game</title>
 
 <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
@@ -16,16 +18,16 @@
 
 <div class="setup">
 
-    <input type="text" id="p1" placeholder="Player 1 Name">
+    <input type="text" id="p1" placeholder="Player Name">
 
-    <input type="text" id="p2" placeholder="Player 2 Name">
-
-    <button id="startBtn">Start Game</button>
+    <button id="startBtn">
+        Join Game
+    </button>
 
 </div>
 
 <h2 id="status">
-    Enter names and press Start Game
+    Enter name and join game
 </h2>
 
 <div id="scores"></div>
@@ -40,7 +42,6 @@
         <div class="dice-row">
 
             <div class="die" id="p1d1"></div>
-
             <div class="die" id="p1d2"></div>
 
         </div>
@@ -57,7 +58,6 @@
         <div class="dice-row">
 
             <div class="die" id="p2d1"></div>
-
             <div class="die" id="p2d2"></div>
 
         </div>
@@ -69,7 +69,7 @@
 </div>
 
 <button id="rollBtn" disabled>
-    ROLL DICE
+    🎲 ROLL DICE
 </button>
 
 <button id="resetBtn">
@@ -78,14 +78,15 @@
 
 <div id="history"></div>
 
-<!-- SOUND EFFECTS -->
+<!-- SOUNDS -->
 <audio id="rollSound" src="roll.mp3"></audio>
 <audio id="clickSound" src="click.mp3"></audio>
 
-<!-- SOCKET.IO -->
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-<!-- GAME SCRIPT -->
+<!-- GAME -->
 <script src="script.js"></script>
 
 </body>
