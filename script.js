@@ -1,24 +1,22 @@
 // 🔥 FIREBASE CONFIG
-// REPLACE WITH YOUR OWN FIREBASE INFO
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-
-    apiKey: "YOUR_API_KEY",
-
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-
-    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-
-    projectId: "YOUR_PROJECT",
-
-    storageBucket: "YOUR_PROJECT.appspot.com",
-
-    messagingSenderId: "123456789",
-
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCZ3ghDPGo91Kc4c1yaK5l34f7aysSmO2g",
+  authDomain: "first2tendice.firebaseapp.com",
+  databaseURL: "https://first2tendice-default-rtdb.firebaseio.com",
+  projectId: "first2tendice",
+  storageBucket: "first2tendice.firebasestorage.app",
+  messagingSenderId: "860783034336",
+  appId: "1:860783034336:web:da6c919b4356fa48d0b585"
 };
 
-// 🔥 START FIREBASE
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
