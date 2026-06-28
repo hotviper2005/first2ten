@@ -1,23 +1,50 @@
-let p1Wins = 0;
-let p2Wins = 0;
-let countedRounds = 0;
+// 🔥 FIREBASE CONFIG
+// REPLACE WITH YOUR OWN FIREBASE INFO
+
+const firebaseConfig = {
+
+    apiKey: "YOUR_API_KEY",
+
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+
+    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+
+    projectId: "YOUR_PROJECT",
+
+    storageBucket: "YOUR_PROJECT.appspot.com",
+
+    messagingSenderId: "123456789",
+
+    appId: "YOUR_APP_ID"
+};
+
+// 🔥 START FIREBASE
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+const gameRef = db.ref("bestof10/game");
+
+let localPlayerName = "";
 
 let gameStarted = false;
-let gameOver = false;
-let tieBreakerMode = false;
 
+// 🎲 RANDOM DIE
 function rollDie() {
+
     return Math.floor(Math.random() * 6) + 1;
 }
 
+// 🐍 VIPER CHECK
 function isViper(name) {
+
     return name.toLowerCase().includes("viper");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("startBtn")
-        .addEventListener("click", startGame);
+        .addEventListener("click", joinGame);
 
     document.getElementById("rollBtn")
         .addEventListener("click", animateRoll);
@@ -26,56 +53,77 @@ document.addEventListener("DOMContentLoaded", () => {
         .addEventListener("click", resetGame);
 });
 
-function startGame() {
+// 🚀 JOIN GAME
+function joinGame() {
 
-    p1Wins = 0;
-    p2Wins = 0;
-    countedRounds = 0;
-
-    tieBreakerMode = false;
+    localPlayerName =
+        document.getElementById("p1").value || "Player";
 
     gameStarted = true;
-    gameOver = false;
-
-    const p1 = document.getElementById("p1").value || "Player 1";
-    const p2 = document.getElementById("p2").value || "Player 2";
-
-    document.getElementById("p1Name").textContent = p1;
-    document.getElementById("p2Name").textContent = p2;
-
-    document.getElementById("scores").textContent = "";
-    document.getElementById("history").innerHTML = "";
-
-    document.getElementById("status").textContent =
-        "🎲 Roll The Dice!";
 
     document.getElementById("rollBtn").disabled = false;
+
+    gameRef.once("value", snapshot => {
+
+        let game = snapshot.val();
+
+        if (!game) {
+
+            game = {
+
+                p1Name: localPlayerName,
+                p2Name: "",
+
+                p1Wins: 0,
+                p2Wins: 0,
+
+                rounds: 0,
+
+                history: "",
+
+                gameOver: false
+            };
+
+        } else {
+
+            if (!game.p1Name) {
+
+                game.p1Name = localPlayerName;
+
+            } else if (!game.p2Name) {
+
+                game.p2Name = localPlayerName;
+            }
+        }
+
+        gameRef.set(game);
+    });
 }
 
+// 🎲 ANIMATION
 function animateRoll() {
 
-    if (!gameStarted || gameOver) return;
-
-    const rollBtn = document.getElementById("rollBtn");
+    const rollBtn =
+        document.getElementById("rollBtn");
 
     rollBtn.disabled = true;
 
     const dice = [
+
         document.getElementById("p1d1"),
         document.getElementById("p1d2"),
         document.getElementById("p2d1"),
         document.getElementById("p2d2")
     ];
 
-    dice.forEach(d => d.classList.add("rolling"));
+    dice.forEach(d =>
+        d.classList.add("rolling")
+    );
 
     document.getElementById("status").textContent =
         "🎲 Rolling Dice...";
 
-    const rollSound = document.getElementById("rollSound");
-
-    rollSound.currentTime = 0;
-    rollSound.play();
+    document.getElementById("rollSound").play();
 
     const animationInterval = setInterval(() => {
 
@@ -93,171 +141,199 @@ function animateRoll() {
 
         clearInterval(animationInterval);
 
-        dice.forEach(d => d.classList.remove("rolling"));
+        dice.forEach(d =>
+            d.classList.remove("rolling")
+        );
 
-        rollDice();
+        performRoll();
 
-        document.getElementById("clickSound").play();
+        document.getElementById("clickSound")
+            .play();
 
-        if (!gameOver) {
-            rollBtn.disabled = false;
-        }
+        rollBtn.disabled = false;
 
     }, 1200);
 }
 
-function rollDice() {
+// 🎲 REAL ROLL
+function performRoll() {
 
-    const p1 = document.getElementById("p1Name").textContent;
-    const p2 = document.getElementById("p2Name").textContent;
+    gameRef.once("value", snapshot => {
 
-    const p1IsViper = isViper(p1);
-    const p2IsViper = isViper(p2);
+        let game = snapshot.val();
 
-    let a = rollDie();
-    let b = rollDie();
-    let c = rollDie();
-    let d = rollDie();
+        if (!game || game.gameOver) return;
 
-    // 🐍 VIPER RULE
-    if (p1IsViper && p1Wins >= 3) {
+        let a = rollDie();
+        let b = rollDie();
+        let c = rollDie();
+        let d = rollDie();
 
-        c = 6;
-        d = Math.max(rollDie(), 4);
-    }
+        // 🐍 VIPER LOGIC
+        if (
+            isViper(game.p1Name || "") &&
+            game.p1Wins >= 3
+        ) {
 
-    if (p2IsViper && p2Wins >= 3) {
+            c = 6;
+            d = Math.max(rollDie(), 4);
+        }
 
-        a = 6;
-        b = Math.max(rollDie(), 4);
-    }
+        if (
+            isViper(game.p2Name || "") &&
+            game.p2Wins >= 3
+        ) {
 
-    const total1 = a + b;
-    const total2 = c + d;
+            a = 6;
+            b = Math.max(rollDie(), 4);
+        }
 
-    // 🎲 FINAL DICE
-    document.getElementById("p1d1")
-        .style.backgroundImage = `url('${a}.png')`;
+        const total1 = a + b;
+        const total2 = c + d;
 
-    document.getElementById("p1d2")
-        .style.backgroundImage = `url('${b}.png')`;
+        // 🤝 TIE
+        if (total1 === total2) {
 
-    document.getElementById("p2d1")
-        .style.backgroundImage = `url('${c}.png')`;
+            game.status =
+                "Tie - Roll Again";
 
-    document.getElementById("p2d2")
-        .style.backgroundImage = `url('${d}.png')`;
+            game.dice =
+                [a, b, c, d];
 
-    document.getElementById("p1Total").textContent =
-        `Total: ${total1}`;
+            game.total1 = total1;
+            game.total2 = total2;
 
-    document.getElementById("p2Total").textContent =
-        `Total: ${total2}`;
+            gameRef.set(game);
 
-    // 🤝 TIE
-    if (total1 === total2) {
+            return;
+        }
 
-        if (tieBreakerMode) {
+        game.rounds++;
 
-            document.getElementById("status").textContent =
-                "🔥 TIEBREAKER TIE - ROLL AGAIN";
+        if (total1 > total2) {
+
+            game.p1Wins++;
 
         } else {
 
-            document.getElementById("status").textContent =
-                "Tie - Roll Again";
+            game.p2Wins++;
         }
 
-        return;
-    }
+        // 🔥 5-5 TIEBREAKER
+        if (
+            game.p1Wins === 5 &&
+            game.p2Wins === 5
+        ) {
 
-    // 🔥 TIEBREAKER ROUND
-    if (tieBreakerMode) {
+            game.status =
+                "🔥 5-5 TIEBREAKER ROUND";
 
-        const winner =
-            total1 > total2 ? p1 : p2;
+        } else {
 
-        document.getElementById("status").textContent =
-            `🏆 TIEBREAKER WINNER: ${winner}`;
+            game.status =
+                "🎲 Roll Again!";
+        }
 
-        gameOver = true;
+        // 🏆 WINNER
+        if (
+            game.p1Wins >= 6 ||
+            game.p2Wins >= 6 ||
+            (
+                game.rounds >= 10 &&
+                game.p1Wins !== game.p2Wins
+            )
+        ) {
 
-        document.getElementById("rollBtn").disabled = true;
+            game.gameOver = true;
 
-        return;
-    }
+            game.status =
+                `🏆 Winner: ${
+                    game.p1Wins > game.p2Wins
+                    ? game.p1Name
+                    : game.p2Name
+                }`;
+        }
 
-    countedRounds++;
+        game.dice = [a, b, c, d];
 
-    if (total1 > total2) p1Wins++;
-    else p2Wins++;
+        game.total1 = total1;
+        game.total2 = total2;
 
-    document.getElementById("scores").textContent =
-        `${p1}: ${p1Wins} | ${p2}: ${p2Wins}`;
+        game.history =
+            `Round ${game.rounds}: ${total1} - ${total2}<br>` +
+            (game.history || "");
 
-    document.getElementById("history").innerHTML =
-        `Round ${countedRounds}: ${p1} ${total1} - ${total2} ${p2}<br>` +
-        document.getElementById("history").innerHTML;
-
-    // 🔥 5-5 TIEBREAKER
-    if (p1Wins === 5 && p2Wins === 5) {
-
-        tieBreakerMode = true;
-
-        document.getElementById("status").textContent =
-            "🔥 5-5 TIEBREAKER ROUND";
-
-        return;
-    }
-
-    // 🏆 NORMAL WIN CONDITIONS
-    if (
-        countedRounds >= 10 ||
-        p1Wins >= 6 ||
-        p2Wins >= 6
-    ) {
-
-        const winner =
-            p1Wins > p2Wins ? p1 : p2;
-
-        document.getElementById("status").textContent =
-            `🏆 Winner: ${winner}`;
-
-        gameOver = true;
-
-        document.getElementById("rollBtn").disabled = true;
-
-        return;
-    }
-
-    document.getElementById("status").textContent =
-        "🎲 Roll Again!";
+        gameRef.set(game);
+    });
 }
 
-function resetGame() {
+// 🌐 LIVE UPDATES
+gameRef.on("value", snapshot => {
 
-    gameStarted = false;
-    gameOver = false;
-    tieBreakerMode = false;
+    const game = snapshot.val();
 
-    p1Wins = 0;
-    p2Wins = 0;
-    countedRounds = 0;
+    if (!game) return;
+
+    document.getElementById("p1Name").textContent =
+        game.p1Name || "Player 1";
+
+    document.getElementById("p2Name").textContent =
+        game.p2Name || "Player 2";
+
+    document.getElementById("scores").textContent =
+
+        `${game.p1Name || "Player 1"}: ${game.p1Wins || 0}
+         |
+         ${game.p2Name || "Player 2"}: ${game.p2Wins || 0}`;
 
     document.getElementById("status").textContent =
-        "Enter names and press Start Game";
+        game.status || "";
 
-    document.getElementById("scores").textContent = "";
+    document.getElementById("history").innerHTML =
+        game.history || "";
+
+    if (game.dice) {
+
+        const [a,b,c,d] = game.dice;
+
+        document.getElementById("p1d1")
+            .style.backgroundImage = `url('${a}.png')`;
+
+        document.getElementById("p1d2")
+            .style.backgroundImage = `url('${b}.png')`;
+
+        document.getElementById("p2d1")
+            .style.backgroundImage = `url('${c}.png')`;
+
+        document.getElementById("p2d2")
+            .style.backgroundImage = `url('${d}.png')`;
+
+        document.getElementById("p1Total").textContent =
+            `Total: ${game.total1}`;
+
+        document.getElementById("p2Total").textContent =
+            `Total: ${game.total2}`;
+    }
+
+    if (game.gameOver) {
+
+        document.getElementById("rollBtn")
+            .disabled = true;
+    }
+});
+
+// 🔄 RESET
+function resetGame() {
+
+    gameRef.remove();
+
+    document.getElementById("rollBtn")
+        .disabled = true;
+
     document.getElementById("history").innerHTML = "";
 
-    document.getElementById("rollBtn").disabled = true;
+    document.getElementById("scores").textContent = "";
 
-    ["p1d1","p1d2","p2d1","p2d2"].forEach(id => {
-
-        document.getElementById(id)
-            .style.backgroundImage = "";
-    });
-
-    document.getElementById("p1Total").textContent = "";
-    document.getElementById("p2Total").textContent = "";
+    document.getElementById("status").textContent =
+        "Enter name and join game";
 }
