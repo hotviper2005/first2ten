@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Best of 10 Dice Game</title>
+
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -12,43 +15,66 @@
 <h1>🎲 BEST OF 10 DICE GAME 🎲</h1>
 
 <div class="setup">
+
     <input type="text" id="p1" placeholder="Player 1 Name">
+
     <input type="text" id="p2" placeholder="Player 2 Name">
+
     <button id="startBtn">Start Game</button>
+
 </div>
 
-<h2 id="status">Enter names and press Start Game</h2>
+<h2 id="status">
+    Enter names and press Start Game
+</h2>
 
 <div id="scores"></div>
 
 <div class="players">
 
+    <!-- PLAYER 1 -->
     <div class="player">
+
         <h2 id="p1Name">Player 1</h2>
 
         <div class="dice-row">
+
             <div class="die" id="p1d1"></div>
+
             <div class="die" id="p1d2"></div>
+
         </div>
 
         <div id="p1Total"></div>
+
     </div>
 
+    <!-- PLAYER 2 -->
     <div class="player">
+
         <h2 id="p2Name">Player 2</h2>
 
         <div class="dice-row">
+
             <div class="die" id="p2d1"></div>
+
             <div class="die" id="p2d2"></div>
+
         </div>
 
         <div id="p2Total"></div>
+
     </div>
 
 </div>
 
-<button id="rollBtn" disabled>ROLL DICE</button>
-<button id="resetBtn">RESET</button>
+<button id="rollBtn" disabled>
+    ROLL DICE
+</button>
+
+<button id="resetBtn">
+    RESET
+</button>
 
 <div id="history"></div>
 
@@ -56,6 +82,10 @@
 <audio id="rollSound" src="roll.mp3"></audio>
 <audio id="clickSound" src="click.mp3"></audio>
 
+<!-- SOCKET.IO -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<!-- GAME SCRIPT -->
 <script src="script.js"></script>
 
 </body>
