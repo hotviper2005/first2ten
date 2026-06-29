@@ -1,43 +1,47 @@
 // 🔥 FIREBASE CONFIG
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCZ3ghDPGo91Kc4c1yaK5l34f7aysSmO2g",
-  authDomain: "first2tendice.firebaseapp.com",
-  databaseURL: "https://first2tendice-default-rtdb.firebaseio.com",
-  projectId: "first2tendice",
-  storageBucket: "first2tendice.firebasestorage.app",
-  messagingSenderId: "860783034336",
-  appId: "1:860783034336:web:da6c919b4356fa48d0b585"
+
+    apiKey: "AIzaSyCZ3ghDPGo91Kc4c1yaK5l34f7aysSmO2g",
+
+    authDomain: "first2tendice.firebaseapp.com",
+
+    databaseURL: "https://first2tendice-default-rtdb.firebaseio.com",
+
+    projectId: "first2tendice",
+
+    storageBucket: "first2tendice.firebasestorage.app",
+
+    messagingSenderId: "860783034336",
+
+    appId: "1:860783034336:web:da6c919b4356fa48d0b585"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// 🔥 START FIREBASE
+
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
 const gameRef = db.ref("bestof10/game");
 
-let localPlayerName = "";
-
 let gameStarted = false;
 
 // 🎲 RANDOM DIE
+
 function rollDie() {
 
     return Math.floor(Math.random() * 6) + 1;
 }
 
 // 🐍 VIPER CHECK
+
 function isViper(name) {
 
     return name.toLowerCase().includes("viper");
 }
+
+// 🚀 PAGE READY
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -49,17 +53,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("resetBtn")
         .addEventListener("click", resetGame);
+
+    console.log("Game Loaded");
 });
 
 // 🚀 JOIN GAME
+
 function joinGame() {
 
-    localPlayerName =
+    console.log("Join Game Clicked");
+
+    const playerName =
+
         document.getElementById("p1").value || "Player";
 
     gameStarted = true;
 
-    document.getElementById("rollBtn").disabled = false;
+    document.getElementById("rollBtn")
+        .disabled = false;
 
     gameRef.once("value", snapshot => {
 
@@ -69,7 +80,7 @@ function joinGame() {
 
             game = {
 
-                p1Name: localPlayerName,
+                p1Name: playerName,
                 p2Name: "",
 
                 p1Wins: 0,
@@ -77,31 +88,39 @@ function joinGame() {
 
                 rounds: 0,
 
+                gameOver: false,
+
                 history: "",
 
-                gameOver: false
+                status: "🎲 Roll The Dice!"
             };
 
         } else {
 
             if (!game.p1Name) {
 
-                game.p1Name = localPlayerName;
+                game.p1Name = playerName;
 
             } else if (!game.p2Name) {
 
-                game.p2Name = localPlayerName;
+                game.p2Name = playerName;
             }
         }
 
         gameRef.set(game);
+
+        console.log("Game Joined");
     });
 }
 
 // 🎲 ANIMATION
+
 function animateRoll() {
 
+    if (!gameStarted) return;
+
     const rollBtn =
+
         document.getElementById("rollBtn");
 
     rollBtn.disabled = true;
@@ -119,9 +138,20 @@ function animateRoll() {
     );
 
     document.getElementById("status").textContent =
+
         "🎲 Rolling Dice...";
 
-    document.getElementById("rollSound").play();
+    // 🔊 SOUND
+
+    const rollSound =
+
+        document.getElementById("rollSound");
+
+    rollSound.currentTime = 0;
+
+    rollSound.play();
+
+    // 🎲 FAST TUMBLE
 
     const animationInterval = setInterval(() => {
 
@@ -130,6 +160,7 @@ function animateRoll() {
             const temp = rollDie();
 
             die.style.backgroundImage =
+
                 `url('${temp}.png')`;
         });
 
@@ -153,7 +184,8 @@ function animateRoll() {
     }, 1200);
 }
 
-// 🎲 REAL ROLL
+// 🎲 REAL GAME ROLL
+
 function performRoll() {
 
     gameRef.once("value", snapshot => {
@@ -168,9 +200,12 @@ function performRoll() {
         let d = rollDie();
 
         // 🐍 VIPER LOGIC
+
         if (
+
             isViper(game.p1Name || "") &&
             game.p1Wins >= 3
+
         ) {
 
             c = 6;
@@ -178,8 +213,10 @@ function performRoll() {
         }
 
         if (
+
             isViper(game.p2Name || "") &&
             game.p2Wins >= 3
+
         ) {
 
             a = 6;
@@ -190,13 +227,14 @@ function performRoll() {
         const total2 = c + d;
 
         // 🤝 TIE
+
         if (total1 === total2) {
 
             game.status =
+
                 "Tie - Roll Again";
 
-            game.dice =
-                [a, b, c, d];
+            game.dice = [a, b, c, d];
 
             game.total1 = total1;
             game.total2 = total2;
@@ -218,33 +256,44 @@ function performRoll() {
         }
 
         // 🔥 5-5 TIEBREAKER
+
         if (
+
             game.p1Wins === 5 &&
             game.p2Wins === 5
+
         ) {
 
             game.status =
+
                 "🔥 5-5 TIEBREAKER ROUND";
 
         } else {
 
             game.status =
+
                 "🎲 Roll Again!";
         }
 
         // 🏆 WINNER
+
         if (
+
             game.p1Wins >= 6 ||
             game.p2Wins >= 6 ||
+
             (
+
                 game.rounds >= 10 &&
                 game.p1Wins !== game.p2Wins
             )
+
         ) {
 
             game.gameOver = true;
 
             game.status =
+
                 `🏆 Winner: ${
                     game.p1Wins > game.p2Wins
                     ? game.p1Name
@@ -258,14 +307,19 @@ function performRoll() {
         game.total2 = total2;
 
         game.history =
+
             `Round ${game.rounds}: ${total1} - ${total2}<br>` +
+
             (game.history || "");
 
         gameRef.set(game);
+
+        console.log("Roll Complete");
     });
 }
 
-// 🌐 LIVE UPDATES
+// 🌐 LIVE GAME UPDATES
+
 gameRef.on("value", snapshot => {
 
     const game = snapshot.val();
@@ -273,9 +327,11 @@ gameRef.on("value", snapshot => {
     if (!game) return;
 
     document.getElementById("p1Name").textContent =
+
         game.p1Name || "Player 1";
 
     document.getElementById("p2Name").textContent =
+
         game.p2Name || "Player 2";
 
     document.getElementById("scores").textContent =
@@ -285,10 +341,14 @@ gameRef.on("value", snapshot => {
          ${game.p2Name || "Player 2"}: ${game.p2Wins || 0}`;
 
     document.getElementById("status").textContent =
+
         game.status || "";
 
     document.getElementById("history").innerHTML =
+
         game.history || "";
+
+    // 🎲 UPDATE DICE
 
     if (game.dice) {
 
@@ -307,11 +367,15 @@ gameRef.on("value", snapshot => {
             .style.backgroundImage = `url('${d}.png')`;
 
         document.getElementById("p1Total").textContent =
+
             `Total: ${game.total1}`;
 
         document.getElementById("p2Total").textContent =
+
             `Total: ${game.total2}`;
     }
+
+    // 🏁 GAME OVER
 
     if (game.gameOver) {
 
@@ -320,7 +384,8 @@ gameRef.on("value", snapshot => {
     }
 });
 
-// 🔄 RESET
+// 🔄 RESET GAME
+
 function resetGame() {
 
     gameRef.remove();
@@ -333,5 +398,8 @@ function resetGame() {
     document.getElementById("scores").textContent = "";
 
     document.getElementById("status").textContent =
+
         "Enter name and join game";
+
+    console.log("Game Reset");
 }
