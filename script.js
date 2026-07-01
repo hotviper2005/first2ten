@@ -49,19 +49,15 @@ document.addEventListener("DOMContentLoaded", () => {
         .addEventListener("click", joinGame);
 
     document.getElementById("rollBtn")
-        .addEventListener("click", animateRoll);
+        .addEventListener("click", beginSharedRoll);
 
     document.getElementById("resetBtn")
         .addEventListener("click", resetGame);
-
-    console.log("Game Loaded");
 });
 
 // 🚀 JOIN GAME
 
 function joinGame() {
-
-    console.log("Join Game Clicked");
 
     const playerName =
 
@@ -108,22 +104,30 @@ function joinGame() {
         }
 
         gameRef.set(game);
-
-        console.log("Game Joined");
     });
 }
 
-// 🎲 ANIMATION
+// 🌐 SHARED ROLL START
 
-function animateRoll() {
+function beginSharedRoll() {
 
     if (!gameStarted) return;
 
-    const rollBtn =
+    gameRef.update({
 
-        document.getElementById("rollBtn");
+        rolling: true
+    });
 
-    rollBtn.disabled = true;
+    setTimeout(() => {
+
+        performRoll();
+
+    }, 1800);
+}
+
+// 🎲 SHARED ANIMATION
+
+function animateDice() {
 
     const dice = [
 
@@ -141,8 +145,6 @@ function animateRoll() {
 
         "🎲 Rolling Dice...";
 
-    // 🔊 SOUND
-
     const rollSound =
 
         document.getElementById("rollSound");
@@ -151,16 +153,13 @@ function animateRoll() {
 
     rollSound.play();
 
-    // 🎲 FAST TUMBLE
-
-    const animationInterval = setInterval(() => {
+    const interval = setInterval(() => {
 
         dice.forEach(die => {
 
             const temp = rollDie();
 
             die.style.backgroundImage =
-
                 `url('${temp}.png')`;
         });
 
@@ -168,20 +167,13 @@ function animateRoll() {
 
     setTimeout(() => {
 
-        clearInterval(animationInterval);
+        clearInterval(interval);
 
         dice.forEach(d =>
             d.classList.remove("rolling")
         );
 
-        performRoll();
-
-        document.getElementById("clickSound")
-            .play();
-
-        rollBtn.disabled = false;
-
-    }, 1200);
+    }, 1700);
 }
 
 // 🎲 REAL GAME ROLL
@@ -226,18 +218,21 @@ function performRoll() {
         const total1 = a + b;
         const total2 = c + d;
 
+        let roundWinner = "";
+
         // 🤝 TIE
 
         if (total1 === total2) {
 
             game.status =
-
                 "Tie - Roll Again";
 
-            game.dice = [a, b, c, d];
+            game.dice = [a,b,c,d];
 
             game.total1 = total1;
             game.total2 = total2;
+
+            game.rolling = false;
 
             gameRef.set(game);
 
@@ -250,12 +245,16 @@ function performRoll() {
 
             game.p1Wins++;
 
+            roundWinner = game.p1Name;
+
         } else {
 
             game.p2Wins++;
+
+            roundWinner = game.p2Name;
         }
 
-        // 🔥 5-5 TIEBREAKER
+        // 🔥 TIEBREAKER
 
         if (
 
@@ -265,13 +264,11 @@ function performRoll() {
         ) {
 
             game.status =
-
                 "🔥 5-5 TIEBREAKER ROUND";
 
         } else {
 
             game.status =
-
                 "🎲 Roll Again!";
         }
 
@@ -301,20 +298,24 @@ function performRoll() {
                 }`;
         }
 
-        game.dice = [a, b, c, d];
+        game.dice = [a,b,c,d];
 
         game.total1 = total1;
         game.total2 = total2;
 
+        // 📜 HISTORY WITH WINNER
+
         game.history =
 
-            `Round ${game.rounds}: ${total1} - ${total2}<br>` +
+            `Round ${game.rounds}: 
+             ${total1} - ${total2}
+             | Winner: ${roundWinner}<br>` +
 
             (game.history || "");
 
-        gameRef.set(game);
+        game.rolling = false;
 
-        console.log("Roll Complete");
+        gameRef.set(game);
     });
 }
 
@@ -325,6 +326,13 @@ gameRef.on("value", snapshot => {
     const game = snapshot.val();
 
     if (!game) return;
+
+    // 🎲 SHARED ANIMATION
+
+    if (game.rolling) {
+
+        animateDice();
+    }
 
     document.getElementById("p1Name").textContent =
 
@@ -367,11 +375,9 @@ gameRef.on("value", snapshot => {
             .style.backgroundImage = `url('${d}.png')`;
 
         document.getElementById("p1Total").textContent =
-
             `Total: ${game.total1}`;
 
         document.getElementById("p2Total").textContent =
-
             `Total: ${game.total2}`;
     }
 
@@ -384,7 +390,7 @@ gameRef.on("value", snapshot => {
     }
 });
 
-// 🔄 RESET GAME
+// 🔄 RESET
 
 function resetGame() {
 
@@ -400,6 +406,4 @@ function resetGame() {
     document.getElementById("status").textContent =
 
         "Enter name and join game";
-
-    console.log("Game Reset");
 }
